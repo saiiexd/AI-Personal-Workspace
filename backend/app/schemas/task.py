@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Any
+import uuid
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, UUID4
+from pydantic import BaseModel, ConfigDict, Field
 from app.database.models import TaskStatus, TaskPriority
 
 class TaskCategoryBase(BaseModel):
@@ -15,8 +16,8 @@ class TaskCategoryUpdate(BaseModel):
     color: Optional[str] = Field(None, max_length=20)
 
 class TaskCategoryResponse(TaskCategoryBase):
-    id: UUID4
-    workspace_id: UUID4
+    id: uuid.UUID
+    workspace_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
@@ -28,8 +29,7 @@ class TaskBase(BaseModel):
     status: TaskStatus = TaskStatus.TODO
     priority: TaskPriority = TaskPriority.MEDIUM
     due_date: Optional[datetime] = None
-    category_id: Optional[UUID4] = None
-    assignee_id: Optional[UUID4] = None
+    category_id: Optional[uuid.UUID] = None
 
 class TaskCreate(TaskBase):
     pass
@@ -40,12 +40,11 @@ class TaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     priority: Optional[TaskPriority] = None
     due_date: Optional[datetime] = None
-    category_id: Optional[UUID4] = None
-    assignee_id: Optional[UUID4] = None
+    category_id: Optional[uuid.UUID] = None
 
 class TaskResponse(TaskBase):
-    id: UUID4
-    workspace_id: UUID4
+    id: uuid.UUID
+    workspace_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
     

@@ -63,7 +63,12 @@ class DocumentService:
         
         # 4. Trigger Processing (Background)
         # Note: In a true prod app, we use Celery/arq. Here we'll fire an async task.
-        asyncio.create_task(document_processing_service.process_document(db, document.id))
+        from app.database.session import AsyncSessionLocal
+        async def process_in_background(doc_id: uuid.UUID):
+            async with AsyncSessionLocal() as bg_db:
+                await document_processing_service.process_document(bg_db, doc_id)
+                
+        asyncio.create_task(process_in_background(document.id))
         
         return document
 

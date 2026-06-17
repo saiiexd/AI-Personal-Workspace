@@ -1,6 +1,7 @@
 from typing import Optional, List
+import uuid
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, UUID4
+from pydantic import BaseModel, ConfigDict, Field
 from app.database.models import ProcessingStatus
 
 class DocumentBase(BaseModel):
@@ -13,8 +14,8 @@ class DocumentUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=255)
 
 class DocumentResponse(DocumentBase):
-    id: UUID4
-    workspace_id: UUID4
+    id: uuid.UUID
+    workspace_id: uuid.UUID
     file_type: str
     size_bytes: int
     processing_status: ProcessingStatus
@@ -31,8 +32,8 @@ class DocumentListResponse(BaseModel):
     limit: int
 
 class DocumentChunkResponse(BaseModel):
-    id: UUID4
-    document_id: UUID4
+    id: uuid.UUID
+    document_id: uuid.UUID
     chunk_index: int
     content: str
     

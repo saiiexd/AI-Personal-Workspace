@@ -32,6 +32,11 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -39,33 +44,30 @@
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+  
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
 
   @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-accordion-content-height);
-    }
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
   }
   @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-    to {
-      height: 0;
-    }
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
   }
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -78,48 +80,63 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 240 10% 98%;
+    --foreground: 240 10% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 240 10% 4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
+    --popover-foreground: 240 10% 4%;
+    --primary: 240 6% 10%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 240 6% 10%;
+    --radius: 0.75rem;
+    --sidebar: 240 5% 96%;
+    --sidebar-foreground: 240 6% 10%;
+    --sidebar-primary: 240 6% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    /* Premium Spatial Dark Mode inspired by Apple/Arc */
+    --background: 240 4% 5%; /* Deep spatial gray, almost black */
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 4% 7%; /* Slightly elevated */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 5% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+    
+    /* A rich primary accent */
+    --primary: 210 100% 65%; /* Soft glowing blue */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 4% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --muted: 240 4% 12%;
+    --muted-foreground: 240 5% 65%;
+    
+    --accent: 240 4% 15%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    
+    --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --border: 240 4% 14%; /* Subtle borders */
+    --input: 240 4% 14%;
+    --ring: 210 100% 65%;
+    
+    --sidebar: 240 4% 6%; /* Deep dark sidebar */
+    --sidebar-foreground: 240 5% 80%;
+    --sidebar-primary: 210 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
   }
 }
 
@@ -129,5 +146,41 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Smooth scrolling and typography rendering */
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism premium utilities */
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50 shadow-sm;
+  }
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-2xl border border-white/5 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20;
+  }
+  .glass-input {
+    @apply bg-background/40 backdrop-blur-md border border-border/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all;
+  }
+  
+  /* Spatial Glows */
+  .glow-primary {
+    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.3);
+  }
+  .glow-hover {
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glow-hover:hover {
+    box-shadow: 0 0 25px -5px hsl(var(--primary) / 0.2);
+  }
+  
+  /* Text gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60;
+  }
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60;
   }
 }
