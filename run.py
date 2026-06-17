@@ -10,8 +10,8 @@ def is_docker_running():
     if not docker_cmd:
         return False
     try:
-        # Run docker info to see if daemon is responsive
-        result = subprocess.run([docker_cmd, "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Run docker info to see if daemon is responsive (with 5s timeout to avoid hangs)
+        result = subprocess.run([docker_cmd, "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
         return result.returncode == 0
     except Exception:
         return False
@@ -23,9 +23,9 @@ def get_docker_compose_cmd():
     
     docker_cmd = shutil.which("docker")
     if docker_cmd:
-        # Check if 'compose' is a valid plugin
+        # Check if 'compose' is a valid plugin (with 5s timeout)
         try:
-            result = subprocess.run([docker_cmd, "compose", "version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            result = subprocess.run([docker_cmd, "compose", "version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
             if result.returncode == 0:
                 return [docker_cmd, "compose"]
         except Exception:
