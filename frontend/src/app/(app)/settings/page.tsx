@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Bell, Shield, Palette, Settings as SettingsIcon, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth-store";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { GradientArt } from "@/components/ui/gradient-art";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -46,92 +46,125 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your account and workspace preferences.</p>
+    <div className="relative min-h-[85vh] w-full flex flex-col justify-between px-8 md:px-20 py-12 z-10 overflow-hidden">
+      
+      {/* Calm System Environment Artwork */}
+      <GradientArt type="settings" />
+
+      {/* Editorial Header */}
+      <div className="max-w-4xl mt-12 md:mt-20 relative z-10">
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xs uppercase tracking-[0.3em] text-[#e0d7c7] mb-6 font-medium"
+        >
+          System Configuration
+        </motion.p>
+        
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl md:text-8xl font-light tracking-tight text-white mb-6 leading-none"
+        >
+          System <span className="italic font-serif text-[#ebd7c8]">Environment</span>
+        </motion.h1>
+
+        <p className="text-lg text-white/40 font-light leading-relaxed max-w-2xl mb-12">
+          Manage your spatial parameters, network credentials, and active partner node profile details.
+        </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-64 space-y-1">
-          <SettingsTab icon={<User />} label="Profile" active />
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
+      {/* Editorial Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20 mt-12 relative z-10 border-t border-white/5 pt-12">
+        
+        {/* Navigation Sidebar */}
+        <div className="space-y-4">
+          <div className="text-xs uppercase tracking-widest text-[#ebd7c8] font-medium pb-2 border-b border-white/5">
+            Parameters
+          </div>
+          <button className="w-full text-left text-sm text-white/80 hover:text-white transition-colors py-1">
+            Profile Credentials
           </button>
+          <button className="w-full text-left text-sm text-white/40 hover:text-white transition-colors py-1">
+            Vector Preferences
+          </button>
+          <button className="w-full text-left text-sm text-white/40 hover:text-white transition-colors py-1">
+            Security Tokens
+          </button>
+          
+          <div className="pt-8">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#e6cabc] hover:text-[#ebd7c8] transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Disconnect Session</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex-1 space-y-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6 bg-white/5 border border-white/10 p-6 rounded-xl"
-          >
-            <div>
-              <h3 className="text-lg font-medium">Profile Information</h3>
-              <p className="text-sm text-muted-foreground">Update your personal details.</p>
+        {/* Configurations Form */}
+        <div className="md:col-span-2 space-y-8 max-w-xl">
+          <div className="text-xs uppercase tracking-widest text-white/30 pb-2 border-b border-white/5">
+            Profile Details
+          </div>
+
+          {message && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xs text-[#c8dad1] tracking-wide"
+            >
+              {message}
+            </motion.div>
+          )}
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#e0d7c7] to-[#b8c2d1] flex items-center justify-center text-black font-medium text-lg">
+                {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase()}
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-widest text-white/30 block mb-1">Active Account</span>
+                <span className="text-sm text-white/60 font-mono">{user?.email}</span>
+              </div>
             </div>
-            
-            {message && (
-              <div className="p-3 bg-white/5 border border-white/10 text-sm rounded-md">
-                {message}
-              </div>
-            )}
 
-            <div className="space-y-4 max-w-md">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold">
-                  {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase()}
-                </div>
-              </div>
-
+            <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email Address</label>
-                <Input value={user?.email || ""} readOnly className="bg-white/5 border-white/10 opacity-70 cursor-not-allowed" />
+                <label className="text-[10px] uppercase tracking-widest text-white/40">First Name</label>
+                <Input 
+                  value={firstName} 
+                  onChange={(e) => setFirstName(e.target.value)} 
+                  className="bg-white/[0.02] border-white/5 h-11 rounded-full text-xs placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/10" 
+                />
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">First Name</label>
-                  <Input 
-                    value={firstName} 
-                    onChange={(e) => setFirstName(e.target.value)} 
-                    className="bg-white/5 border-white/10" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Name</label>
-                  <Input 
-                    value={lastName} 
-                    onChange={(e) => setLastName(e.target.value)} 
-                    className="bg-white/5 border-white/10" 
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-white/40">Last Name</label>
+                <Input 
+                  value={lastName} 
+                  onChange={(e) => setLastName(e.target.value)} 
+                  className="bg-white/[0.02] border-white/5 h-11 rounded-full text-xs placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/10" 
+                />
               </div>
             </div>
+          </div>
 
-            <div className="pt-4 border-t border-white/10">
-              <Button onClick={handleSaveProfile} disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </motion.div>
+          <div className="pt-6">
+            <button 
+              onClick={handleSaveProfile} 
+              disabled={isSaving}
+              className="h-11 px-6 rounded-full bg-white/5 border border-white/10 hover:bg-white hover:text-black hover:border-white transition-all text-xs font-medium tracking-wider text-[#ebd7c8]"
+            >
+              {isSaving ? "Syncing..." : "Save Parameters"}
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-  );
-}
 
-function SettingsTab({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
-  return (
-    <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-      active ? "bg-white/10 text-zinc-100" : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
-    }`}>
-      <div className="w-4 h-4">{icon}</div>
-      {label}
-    </button>
+      </div>
+
+      <div className="mt-16 pt-8 border-t border-white/5" />
+
+    </div>
   );
 }

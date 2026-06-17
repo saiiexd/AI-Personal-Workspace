@@ -2,200 +2,213 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Check, Search, Calendar, Flag, AlertCircle, Trash } from "lucide-react";
+import { Plus, Check, Search, Calendar, Flag, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useTasks, TaskStatus, TaskPriority } from "@/hooks/use-tasks";
+import { useTasks, TaskStatus } from "@/hooks/use-tasks";
+import { GradientArt } from "@/components/ui/gradient-art";
 
 export default function TasksPage() {
-  const [filterStatus, setFilterStatus] = useState<TaskStatus | "all">("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const { tasks, isLoading, createTask, updateTask } = useTasks();
   const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("medium");
-  const [isAdding, setIsAdding] = useState(false);
-
-  // Filter criteria passed to backend or handled on client side
-  const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks(
-    filterStatus !== "all" ? { status: filterStatus } : undefined
-  );
+  const [search, setSearch] = useState("");
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
-
+    
     await createTask.mutateAsync({
       title: newTaskTitle,
       status: "todo",
-      priority: newTaskPriority,
-      due_date: new Date(Date.now() + 86400000).toISOString(), // Default: Tomorrow
+      priority: "medium",
     });
-
     setNewTaskTitle("");
-    setIsAdding(false);
   };
 
-  const handleToggleTask = async (id: string, currentStatus: TaskStatus) => {
-    const nextStatus: TaskStatus = currentStatus === "done" ? "todo" : "done";
-    await updateTask.mutateAsync({
-      id,
-      status: nextStatus,
-    });
-  };
-
-  const handleDeleteTask = async (id: string) => {
-    if (confirm("Delete this task?")) {
-      await deleteTask.mutateAsync(id);
+  const handleToggleStatus = async (taskId: string, currentStatus: TaskStatus) => {
+    const newStatus = currentStatus === "done" ? "todo" : "done";
+    
+    if (newStatus === "done") {
+      setCompletedTaskIds(prev => new Set(prev).add(taskId));
+      setTimeout(async () => {
+        await updateTask.mutateAsync({ id: taskId, status: newStatus });
+      }, 600);
+    } else {
+      setCompletedTaskIds(prev => {
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+      await updateTask.mutateAsync({ id: taskId, status: newStatus });
     }
   };
 
-  // Client side filtering for query
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTasks = tasks.filter(t => 
+    t.title.toLowerCase().includes(search.toLowerCase()) && t.status !== "done"
   );
+  const doneTasks = tasks.filter(t => t.status === "done");
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-          <p className="text-muted-foreground mt-1">Manage your actionable items.</p>
+    <div className="relative min-h-[85vh] w-full flex flex-col justify-between px-8 md:px-20 py-12 z-10 overflow-hidden">
+      
+      {/* Productivity Energy Streams Artwork */}
+      <GradientArt type="tasks" />
+
+      {/* Editorial Header */}
+      <div className="max-w-4xl mt-12 md:mt-20 relative z-10">
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xs uppercase tracking-[0.3em] text-[#e0d7c7] mb-6 font-medium"
+        >
+          Workspace Momentum
+        </motion.p>
+        
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl md:text-8xl font-light tracking-tight text-white mb-6 leading-none"
+        >
+          Directives & <span className="italic font-serif text-[#ebd7c8]">Momentum</span>
+        </motion.h1>
+
+        <p className="text-lg text-white/40 font-light leading-relaxed max-w-2xl mb-12">
+          Your active directives drive momentum. Keep the cognitive flow high by completing active items and reviewing your progress.
+        </p>
+
+        {/* Action Dock (Search + Create) */}
+        <div className="flex flex-col md:flex-row gap-4 max-w-3xl">
+          <form onSubmit={handleCreateTask} className="flex-1 relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#ebd7c8]/20 to-[#ebd0a0]/20 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500" />
+            <div className="relative flex items-center bg-white/[0.02] border border-white/5 rounded-full px-6 py-1">
+              <Input 
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                placeholder="Initialize a new directive..."
+                className="flex-1 bg-transparent border-none text-white placeholder:text-white/20 focus-visible:ring-0 text-sm h-12"
+              />
+              <button 
+                type="submit"
+                disabled={!newTaskTitle.trim() || createTask.isPending}
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-[#ebd7c8] hover:bg-white hover:text-black transition-all flex items-center justify-center"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </form>
+
+          <div className="w-full md:w-64 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <Input 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="pl-12 bg-white/[0.02] border-white/5 h-14 rounded-full text-xs placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/10"
+            />
+          </div>
         </div>
-        <Button onClick={() => setIsAdding(!isAdding)} className="gap-2">
-          <Plus className="w-4 h-4" /> New Task
-        </Button>
       </div>
 
-      {isAdding && (
-        <motion.form 
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          onSubmit={handleCreateTask}
-          className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4"
-        >
-          <div className="flex gap-4">
-            <Input
-              placeholder="What needs to be done?"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              className="bg-zinc-950/50 border-white/10"
-              required
-            />
-            <select
-              value={newTaskPriority}
-              onChange={(e) => setNewTaskPriority(e.target.value as TaskPriority)}
-              className="bg-zinc-950 border border-white/10 rounded-lg px-3 text-sm text-zinc-300 focus:outline-none"
-            >
-              <option value="low">Low Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="high">High Priority</option>
-            </select>
-            <Button type="submit">Add Task</Button>
-          </div>
-        </motion.form>
-      )}
-
-      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-white/10 bg-zinc-900/50 flex gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search tasks..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 bg-zinc-950/50 border-white/10 h-9" 
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant={filterStatus === "all" ? "outline" : "ghost"} 
-              size="sm" 
-              onClick={() => setFilterStatus("all")}
-              className="h-9"
-            >
-              All
-            </Button>
-            <Button 
-              variant={filterStatus === "todo" ? "outline" : "ghost"} 
-              size="sm" 
-              onClick={() => setFilterStatus("todo")}
-              className="h-9"
-            >
-              To Do
-            </Button>
-            <Button 
-              variant={filterStatus === "in_progress" ? "outline" : "ghost"} 
-              size="sm" 
-              onClick={() => setFilterStatus("in_progress")}
-              className="h-9"
-            >
-              In Progress
-            </Button>
-            <Button 
-              variant={filterStatus === "done" ? "outline" : "ghost"} 
-              size="sm" 
-              onClick={() => setFilterStatus("done")}
-              className="h-9"
-            >
-              Completed
-            </Button>
-          </div>
-        </div>
-
-        <div className="divide-y divide-white/5">
+      {/* Directives Stream */}
+      <div className="relative z-10 mt-20 max-w-3xl space-y-6">
+        <AnimatePresence mode="popLayout">
           {isLoading ? (
-            <div className="p-8 text-center text-zinc-500">Loading tasks...</div>
+            <div className="text-white/30 py-10">
+              <p className="text-xs uppercase tracking-widest font-mono">Loading directives...</p>
+            </div>
           ) : filteredTasks.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500">No tasks found.</div>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-3 py-12 text-[#c8dad1]"
+            >
+              <Sparkles className="w-5 h-5 text-current animate-pulse" />
+              <span className="text-xs uppercase tracking-widest font-mono">No active directives. Platform is optimized.</span>
+            </motion.div>
           ) : (
-            <AnimatePresence>
-              {filteredTasks.map((task) => (
+            filteredTasks.map((task, i) => {
+              const isExploding = completedTaskIds.has(task.id);
+              
+              return (
                 <motion.div
                   key={task.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={isExploding ? { 
+                    x: "10%", 
+                    opacity: 0, 
+                    filter: "blur(6px)"
+                  } : { 
+                    opacity: 1, 
+                    y: 0,
+                    filter: "blur(0px)" 
+                  }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className={`flex items-center p-4 gap-4 transition-colors hover:bg-white/5 ${task.status === 'done' ? 'opacity-60' : ''}`}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 150, 
+                    damping: 20, 
+                    delay: isExploding ? 0 : i * 0.04
+                  }}
+                  className="group relative flex items-center justify-between py-5 border-b border-white/5 hover:border-white/20 transition-all duration-500"
                 >
-                  <button 
-                    onClick={() => handleToggleTask(task.id, task.status)}
-                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                      task.status === 'done' 
-                        ? 'bg-primary border-primary text-primary-foreground' 
-                        : 'border-zinc-600 hover:border-zinc-400'
-                    }`}
-                  >
-                    {task.status === 'done' && <Check className="w-3 h-3" />}
-                  </button>
-                  
-                  <div className="flex-1">
-                    <span className={`text-sm font-medium ${task.status === 'done' ? 'line-through text-zinc-500' : 'text-zinc-200'}`}>
-                      {task.title}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    {task.priority === 'high' && <AlertCircle className="w-4 h-4 text-rose-500" />}
-                    {task.priority === 'medium' && <Flag className="w-4 h-4 text-amber-500" />}
-                    {task.due_date && (
-                      <span className="flex items-center text-xs text-zinc-500 font-medium">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {new Date(task.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-6 flex-1 min-w-0">
                     <button 
-                      onClick={() => handleDeleteTask(task.id)}
-                      className="text-zinc-500 hover:text-rose-400 transition-colors p-1"
+                      onClick={() => handleToggleStatus(task.id, task.status as TaskStatus)}
+                      className="w-7 h-7 rounded-full border border-white/20 hover:border-[#ebd7c8] flex items-center justify-center bg-black/20 group-hover:scale-105 transition-all"
                     >
-                      <Trash className="w-4 h-4" />
+                      <Check className="w-3.5 h-3.5 text-[#ebd7c8] opacity-0 group-hover:opacity-100 transition-opacity" />
                     </button>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-light text-lg text-white group-hover:text-[#ebd7c8] transition-colors duration-500 truncate">
+                        {task.title}
+                      </h3>
+                      <div className="flex items-center gap-4 mt-1.5 text-[9px] text-white/30 font-mono tracking-widest uppercase">
+                        {task.priority && (
+                          <span className="flex items-center gap-1 text-[#ebd7c8]/60">
+                            <Flag className="w-3 h-3 text-[#ebd7c8]" />
+                            {task.priority}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(task.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
-              ))}
-            </AnimatePresence>
+              );
+            })
           )}
-        </div>
+        </AnimatePresence>
       </div>
+
+      {/* Done Directives Summary */}
+      {doneTasks.length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative z-10 border-t border-white/5 mt-20 pt-12 pb-32 max-w-3xl"
+        >
+          <h3 className="text-white/30 uppercase tracking-[0.25em] text-[10px] mb-6">Completed Directives</h3>
+          <div className="flex flex-wrap gap-3">
+            {doneTasks.slice(0, 8).map(task => (
+              <div key={task.id} className="px-4 py-2 rounded-full bg-white/[0.01] border border-white/5 text-xs text-white/30 line-through">
+                {task.title}
+              </div>
+            ))}
+            {doneTasks.length > 8 && (
+              <div className="px-4 py-2 rounded-full bg-white/[0.01] border border-white/5 text-xs text-white/30">
+                +{doneTasks.length - 8} more
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
     </div>
   );
 }

@@ -34,29 +34,29 @@ def get_docker_compose_cmd():
     return None
 
 def main():
-    print("🚀 Starting AI Personal Workspace...")
+    print("Starting AI Personal Workspace...")
     
     if not is_docker_running():
-        print("❌ Error: Docker daemon is not running!")
+        print("Error: Docker daemon is not running!")
         print("Please start Docker Desktop on your system and try again.")
         print("The system requires Docker for PostgreSQL (with pgvector) and Redis.")
         sys.exit(1)
 
     compose_cmd = get_docker_compose_cmd()
     if not compose_cmd:
-        print("❌ Error: Neither 'docker-compose' nor 'docker compose' was found in your PATH.")
+        print("Error: Neither 'docker-compose' nor 'docker compose' was found in your PATH.")
         print("Please install Docker Compose and try again.")
         sys.exit(1)
 
-    print("📦 Building and starting containers...")
+    print("Building and starting containers...")
     up_cmd = compose_cmd + ["up", "-d", "--build"]
     try:
         subprocess.run(up_cmd, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to start containers: {e}")
+        print(f"Failed to start containers: {e}")
         sys.exit(1)
 
-    print("⏳ Waiting for database to be ready and running migrations...")
+    print("Waiting for database to be ready and running migrations...")
     migrate_cmd = compose_cmd + ["exec", "-T", "api", "alembic", "upgrade", "head"]
     
     # Retry running migrations as the DB container might take a few seconds to start up
@@ -67,7 +67,7 @@ def main():
             # Check if api service is ready to run alembic
             result = subprocess.run(migrate_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if result.returncode == 0:
-                print("✅ Database migrations applied successfully.")
+                print("Database migrations applied successfully.")
                 success = True
                 break
             else:
@@ -81,14 +81,14 @@ def main():
         time.sleep(2)
 
     if not success:
-        print("⚠️ Warning: Migrations could not be applied automatically.")
+        print("Warning: Migrations could not be applied automatically.")
         print("Please run migrations manually once the services are online using: make migrate")
     
     print("\n" + "="*50)
-    print("🎉 AI Personal Workspace is up and running!")
+    print("AI Personal Workspace is up and running!")
     print("="*50)
-    print("🔗 Frontend Dashboard:  http://localhost:3000")
-    print("🔗 Backend API Docs:    http://localhost:8000/docs")
+    print("Frontend Dashboard:  http://localhost:3000")
+    print("Backend API Docs:    http://localhost:8000/docs")
     print("="*50)
     print("\nTo stop the system, run: docker compose down")
 

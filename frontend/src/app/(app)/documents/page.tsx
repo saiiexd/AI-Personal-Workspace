@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { UploadCloud, FileText, Trash, Search, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { UploadCloud, FileText, Trash, Search, RefreshCw, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useDocuments } from "@/hooks/use-documents";
 import { useRef, useState } from "react";
+import { GradientArt } from "@/components/ui/gradient-art";
 
 export default function DocumentsPage() {
   const { documents, isLoading, uploadDocument, deleteDocument } = useDocuments();
@@ -23,8 +23,9 @@ export default function DocumentsPage() {
     fileInputRef.current?.click();
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this document? This will remove its embedded semantic search chunks.")) {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Purge this library item?")) {
       await deleteDocument.mutateAsync(id);
     }
   };
@@ -34,101 +35,141 @@ export default function DocumentsPage() {
   );
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
-          <p className="text-muted-foreground mt-1">Your knowledge base, fully indexed for semantic search.</p>
-        </div>
-        <div>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            className="hidden" 
-          />
-          <Button onClick={handleUploadClick} className="gap-2" disabled={uploadDocument.isPending}>
-            {uploadDocument.isPending ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" /> Uploading...
-              </>
-            ) : (
-              <>
-                <UploadCloud className="w-4 h-4" /> Upload Document
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+    <div className="relative min-h-[85vh] w-full flex flex-col justify-between px-8 md:px-20 py-12 z-10 overflow-hidden">
+      
+      {/* Information Flows Artwork */}
+      <GradientArt type="documents" />
 
-      <div className="flex gap-4 items-center">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search documents..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 bg-white/5 border-white/10" 
-          />
-        </div>
-      </div>
+      {/* Editorial Header */}
+      <div className="max-w-4xl mt-12 md:mt-20 relative z-10">
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xs uppercase tracking-[0.3em] text-[#ebd7c8] mb-6 font-medium"
+        >
+          Knowledge Repository
+        </motion.p>
+        
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl md:text-8xl font-light tracking-tight text-white mb-6 leading-none"
+        >
+          Knowledge <span className="italic font-serif text-[#ebd7c8]">Library</span>
+        </motion.h1>
 
-      {isLoading ? (
-        <div className="text-center text-zinc-500 py-12">Loading documents...</div>
-      ) : filteredDocs.length === 0 ? (
-        <div className="text-center text-zinc-500 py-12">No documents uploaded yet. Try uploading a PDF, TXT or DOCX file!</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocs.map((doc, i) => (
-            <motion.div
-              key={doc.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="group relative rounded-xl border border-white/10 bg-white/5 p-5 hover:bg-white/10 transition-all cursor-pointer"
+        <p className="text-lg text-white/40 font-light leading-relaxed max-w-2xl mb-12">
+          Your semantic memory base. Upload publications, papers, or logs. Antigravity segments, vectorizes, and indexes the content for instant contextual intelligence.
+        </p>
+
+        {/* Action Dock (Search + Upload) */}
+        <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Input 
+              placeholder="Search library documents..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 bg-white/[0.02] border-white/5 h-12 rounded-full text-sm placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/10" 
+            />
+          </div>
+
+          <div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              className="hidden" 
+              accept=".pdf,.txt,.docx"
+            />
+            <button
+              onClick={handleUploadClick}
+              disabled={uploadDocument.isPending}
+              className="h-12 px-6 rounded-full bg-white/5 border border-white/10 hover:bg-white hover:text-black hover:border-white transition-all text-xs font-medium tracking-wider text-[#ebd7c8] flex items-center justify-center gap-2"
             >
-              <div className="absolute top-4 right-4">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => handleDelete(doc.id)}
-                  className="w-8 h-8 text-zinc-400 hover:text-rose-400 transition-colors"
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <FileText className="w-6 h-6 text-primary" />
-              </div>
-              
-              <h3 className="font-semibold text-zinc-100 truncate mb-1 pr-6" title={doc.title}>{doc.title}</h3>
-              
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
-                  <span>{doc.file_type.toUpperCase()}</span>
-                  <span>•</span>
-                  <span>{(doc.size_bytes / 1024 / 1024).toFixed(2)} MB</span>
-                  <span>•</span>
-                  <span>{new Date(doc.created_at).toLocaleDateString()}</span>
-                </div>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                <span className={`text-[10px] uppercase font-bold tracking-wider ${
-                  doc.processing_status === 'completed' 
-                    ? 'text-emerald-500' 
-                    : doc.processing_status === 'failed' 
-                    ? 'text-rose-500' 
-                    : 'text-amber-500 animate-pulse'
-                }`}>
-                  {doc.processing_status}
-                </span>
-              </div>
-            </motion.div>
-          ))}
+              {uploadDocument.isPending ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-current" />
+                  <span>Ingesting File...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-4 h-4 text-current" />
+                  <span>Add Publication</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Publications Workspace - Book Cover / Editorial Cards */}
+      <div className="relative z-10 mt-20 pb-32">
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-white/30 py-20">
+            <p className="text-xs uppercase tracking-widest font-mono">Syncing Library Grid...</p>
+          </div>
+        ) : filteredDocs.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-start py-20 text-white/30 max-w-sm"
+          >
+            <p className="text-[10px] uppercase tracking-widest font-mono">No publications found. Add documents to build your semantic network.</p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <AnimatePresence>
+              {filteredDocs.map((doc, i) => (
+                <motion.div
+                  key={doc.id}
+                  layout
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.6, delay: i * 0.04 }}
+                  className="group relative flex flex-col justify-between aspect-[3/4] p-6 bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all duration-700 rounded-2xl cursor-default"
+                >
+                  {/* Subtle hover gradient reflection */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#ebd7c8]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-2xl pointer-events-none" />
+
+                  {/* Header of the "book" */}
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-mono tracking-widest uppercase text-white/30">
+                      {doc.file_type || "PDF"}
+                    </span>
+                    <button 
+                      onClick={(e) => handleDelete(doc.id, e)}
+                      className="w-7 h-7 rounded-full bg-white/5 hover:bg-red-500/10 text-white/30 hover:text-red-400 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Title and details */}
+                  <div className="mt-8 flex-1 flex flex-col justify-end">
+                    <h3 className="font-light text-xl text-white group-hover:text-[#ebd7c8] transition-colors duration-500 line-clamp-4 leading-tight mb-4">
+                      {doc.title}
+                    </h3>
+                    
+                    <div className="flex items-center gap-3 text-[10px] font-mono text-white/40 tracking-wider">
+                      <span>{(doc.size_bytes / 1024 / 1024).toFixed(1)} MB</span>
+                      <span>•</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{
+                          backgroundColor: doc.processing_status === 'completed' ? '#c8dad1' : doc.processing_status === 'failed' ? '#e6cabc' : '#ebd7c8'
+                        }} />
+                        <span className="uppercase tracking-widest text-[9px]">{doc.processing_status}</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

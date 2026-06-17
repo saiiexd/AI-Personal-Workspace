@@ -1,191 +1,127 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, CheckSquare, BrainCircuit, Activity, FolderOpen } from "lucide-react";
-import { useNotes } from "@/hooks/use-notes";
-import { useTasks } from "@/hooks/use-tasks";
-import { useDocuments } from "@/hooks/use-documents";
-import { useAI } from "@/hooks/use-ai";
+import { useAuthStore } from "@/store/auth-store";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { GradientArt } from "@/components/ui/gradient-art";
 
 export default function WorkspacesPage() {
-  const { notes, isLoading: isNotesLoading } = useNotes();
-  const { tasks, isLoading: isTasksLoading } = useTasks();
-  const { documents, isLoading: isDocsLoading } = useDocuments();
-  const { conversations } = useAI();
+  const { user } = useAuthStore();
+  const [time, setTime] = useState("");
 
-  const totalNotes = notes.length;
-  const activeTasks = tasks.filter((t) => t.status !== "done").length;
-  const totalDocs = documents.length;
-  const totalAIConvs = conversations.length;
-
-  const recentNotes = notes.slice(0, 3);
-  const recentDocs = documents.slice(0, 3);
-  const openTasksList = tasks.filter((t) => t.status !== "done").slice(0, 3);
-
-  const isLoading = isNotesLoading || isTasksLoading || isDocsLoading;
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setTime(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Overview of your personal workspace activity.</p>
-        </div>
-      </div>
+    <div className="relative min-h-[85vh] w-full flex flex-col justify-between px-8 md:px-20 py-12 z-10 overflow-hidden">
+      
+      {/* Editorial Intelligence Field Art */}
+      <GradientArt type="intelligence" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Notes" 
-          value={isLoading ? "..." : String(totalNotes)} 
-          icon={<FileText className="w-4 h-4 text-blue-500" />} 
-          trend="Saved thoughts" 
-        />
-        <StatCard 
-          title="Active Tasks" 
-          value={isLoading ? "..." : String(activeTasks)} 
-          icon={<CheckSquare className="w-4 h-4 text-emerald-500" />} 
-          trend="Awaiting action" 
-        />
-        <StatCard 
-          title="Documents" 
-          value={isLoading ? "..." : String(totalDocs)} 
-          icon={<FolderOpen className="w-4 h-4 text-purple-500" />} 
-          trend="Knowledge base files" 
-        />
-        <StatCard 
-          title="AI Chats" 
-          value={isLoading ? "..." : String(totalAIConvs)} 
-          icon={<BrainCircuit className="w-4 h-4 text-amber-500" />} 
-          trend="Contextual helper threads" 
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle>Recent Notes</CardTitle>
-              <CardDescription>Your latest captured thoughts.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {isLoading ? (
-                  <div className="text-zinc-500 text-sm">Loading activity...</div>
-                ) : recentNotes.length === 0 ? (
-                  <div className="text-zinc-500 text-sm">No notes found. Create your first note from the sidebar.</div>
-                ) : (
-                  recentNotes.map((note) => (
-                    <Link href="/notes" key={note.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium truncate text-zinc-100">{note.title}</h4>
-                        <p className="text-xs text-muted-foreground">Edited {new Date(note.updated_at).toLocaleDateString()}</p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle>Recent Documents</CardTitle>
-              <CardDescription>Latest files uploaded.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {isLoading ? (
-                  <div className="text-zinc-500 text-sm">Loading activity...</div>
-                ) : recentDocs.length === 0 ? (
-                  <div className="text-zinc-500 text-sm">No documents found. Upload files in Documents view.</div>
-                ) : (
-                  recentDocs.map((doc) => (
-                    <Link href="/documents" key={doc.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                        <FolderOpen className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium truncate text-zinc-100">{doc.title}</h4>
-                        <p className="text-xs text-muted-foreground">{doc.file_type.toUpperCase()} • {(doc.size_bytes / 1024 / 1024).toFixed(2)} MB</p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Hero Narrative Section */}
+      <div className="max-w-4xl mt-12 md:mt-24 relative z-10">
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-xs uppercase tracking-[0.3em] text-[#e0d7c7] mb-6 font-medium"
+        >
+          Active Node / {user?.firstName || "Intelligence Partner"}
+        </motion.p>
         
-        <div className="space-y-6">
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle>Open Tasks</CardTitle>
-              <CardDescription>Tasks requiring immediate attention.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {isLoading ? (
-                  <div className="text-zinc-500 text-sm">Loading tasks...</div>
-                ) : openTasksList.length === 0 ? (
-                  <div className="text-zinc-500 text-sm">All tasks are completed!</div>
-                ) : (
-                  openTasksList.map((task) => (
-                    <Link href="/tasks" key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-                      <div className={`w-2 h-2 rounded-full ${task.priority === 'high' ? 'bg-rose-500' : task.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'}`} />
-                      <span className="text-sm text-zinc-200 truncate flex-1">{task.title}</span>
-                    </Link>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-5xl md:text-8xl font-light tracking-tight text-white mb-8 leading-[1.05]"
+        >
+          Your Second <span className="italic font-serif text-[#e0d7c7]">Brain</span>
+        </motion.h1>
 
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle>AI Assistant</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm">
-                <p className="text-purple-200">
-                  <strong className="text-purple-100">Quick Tip:</strong> Use the AI Assistant to query your workspace files semantically without needing to search manually.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="text-lg md:text-xl text-white/50 font-light leading-relaxed max-w-2xl"
+        >
+          A single, unified network of your intelligence, memory, and actions. Antigravity connects your documents, tasks, and notes into an active spatial environment.
+        </motion.p>
       </div>
-    </div>
-  );
-}
 
-function StatCard({ title, value, icon, trend }: { title: string, value: string, icon: React.ReactNode, trend: string }) {
-  return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      <Card className="bg-white/5 border-white/10 overflow-hidden relative">
-        <div className="absolute right-0 top-0 opacity-10 scale-150 transform translate-x-1/4 -translate-y-1/4">
-          {icon}
-        </div>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            {title}
-          </CardTitle>
-          {icon}
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{value}</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {trend}
-          </p>
-        </CardContent>
-      </Card>
-    </motion.div>
+      {/* Asymmetric Knowledge Stats & Actions - No Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20 items-end mt-20 relative z-10 border-t border-white/5 pt-12">
+        
+        {/* Memory Segment */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="group cursor-default"
+        >
+          <div className="flex justify-between items-baseline mb-3">
+            <span className="text-xs uppercase tracking-widest text-white/40">Knowledge Base</span>
+            <span className="text-[10px] font-mono text-[#c8dad1]">+3 today</span>
+          </div>
+          <div className="h-px bg-white/10 w-full mb-4 group-hover:bg-[#b8c2d1]/30 transition-colors duration-500" />
+          <div className="flex items-baseline gap-2">
+            <span className="text-5xl font-serif font-light text-white group-hover:text-[#b8c2d1] transition-colors duration-500">42</span>
+            <span className="text-xs text-white/30 font-light">Indexed vectors</span>
+          </div>
+        </motion.div>
+
+        {/* Momentum Segment */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="group cursor-default"
+        >
+          <div className="flex justify-between items-baseline mb-3">
+            <span className="text-xs uppercase tracking-widest text-white/40">Active Directives</span>
+            <span className="text-[10px] font-mono text-[#ebd7c8]">High priority</span>
+          </div>
+          <div className="h-px bg-white/10 w-full mb-4 group-hover:bg-[#ebd7c8]/30 transition-colors duration-500" />
+          <div className="flex items-baseline gap-2">
+            <span className="text-5xl font-serif font-light text-white group-hover:text-[#ebd7c8] transition-colors duration-500">12</span>
+            <span className="text-xs text-white/30 font-light">Directives executing</span>
+          </div>
+        </motion.div>
+
+        {/* CTA Segment */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="flex flex-col items-start"
+        >
+          <div className="text-xs uppercase tracking-widest text-white/40 mb-3">System Hub</div>
+          <div className="h-px bg-white/10 w-full mb-6" />
+          <Link 
+            href="/ai"
+            className="flex items-center gap-2 group text-sm text-[#e0d7c7] hover:text-white transition-colors duration-500"
+          >
+            <span>Begin intelligence session</span>
+            <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+          </Link>
+        </motion.div>
+
+      </div>
+
+      {/* System Footer Metadata */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-[10px] font-mono text-white/20 tracking-widest uppercase mt-16 pt-8 border-t border-white/5 relative z-10">
+        <div>Platform v1.2.0 / Spatial OS</div>
+        <div>Local Environment: Standard Time {time}</div>
+      </div>
+
+    </div>
   );
 }

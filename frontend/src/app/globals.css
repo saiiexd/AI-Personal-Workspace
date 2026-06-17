@@ -32,15 +32,6 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  
-  --color-sidebar: hsl(var(--sidebar));
-  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-  --color-sidebar-primary: hsl(var(--sidebar-primary));
-  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -48,6 +39,7 @@
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-shimmer: shimmer 2s linear infinite;
+  --animate-reverse-spin: reverse-spin 16s linear infinite;
 
   @keyframes accordion-down {
     from { height: 0; }
@@ -66,6 +58,10 @@
     from { background-position: 200% 0; }
     to { background-position: -200% 0; }
   }
+  @keyframes reverse-spin {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
 }
 
 @layer base {
@@ -74,113 +70,117 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--border, currentColor);
   }
 }
 
 @layer base {
   :root {
-    --background: 240 10% 98%;
-    --foreground: 240 10% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
-    --primary: 240 6% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 10%;
-    --destructive: 0 84% 60%;
+    color-scheme: dark;
+    /* Deep space black everywhere, strict dark mode enforcement */
+    --background: 0 0% 2%; 
+    --foreground: 0 0% 98%;
+    
+    /* "Cards" and "Popovers" are effectively invisible or glass */
+    --card: 0 0% 2%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Intelligent Accent Colors */
+    --primary: 220 10% 90%; 
+    --primary-foreground: 0 0% 2%;
+    
+    --secondary: 0 0% 5%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 0 0% 5%;
+    --muted-foreground: 0 0% 60%;
+    
+    --accent: 0 0% 8%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 240 6% 10%;
-    --radius: 0.75rem;
-    --sidebar: 240 5% 96%;
-    --sidebar-foreground: 240 6% 10%;
-    --sidebar-primary: 240 6% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    
+    --border: 0 0% 8%;
+    --input: 0 0% 5%;
+    --ring: 0 0% 80%;
+    
+    --radius: 0; /* Removing traditional rounded borders for an edge-to-edge feel where needed, though we can use tailwind classes for circles */
   }
 
   .dark {
-    /* Premium Spatial Dark Mode inspired by Apple/Arc */
-    --background: 240 4% 5%; /* Deep spatial gray, almost black */
+    /* Same as root to prevent any flashes */
+    --background: 0 0% 2%; 
     --foreground: 0 0% 98%;
-    --card: 240 4% 7%; /* Slightly elevated */
+    --card: 0 0% 2%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 5% 8%;
+    --popover: 0 0% 3%;
     --popover-foreground: 0 0% 98%;
-    
-    /* A rich primary accent */
-    --primary: 210 100% 65%; /* Soft glowing blue */
-    --primary-foreground: 0 0% 100%;
-    
-    --secondary: 240 4% 12%;
+    --primary: 220 10% 90%; 
+    --primary-foreground: 0 0% 2%;
+    --secondary: 0 0% 5%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 12%;
-    --muted-foreground: 240 5% 65%;
-    
-    --accent: 240 4% 15%;
+    --muted: 0 0% 5%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 8%;
     --accent-foreground: 0 0% 98%;
-    
-    --destructive: 0 63% 31%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 14%; /* Subtle borders */
-    --input: 240 4% 14%;
-    --ring: 210 100% 65%;
-    
-    --sidebar: 240 4% 6%; /* Deep dark sidebar */
-    --sidebar-foreground: 240 5% 80%;
-    --sidebar-primary: 210 100% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --border: 0 0% 8%;
+    --input: 0 0% 5%;
+    --ring: 0 0% 80%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground;
-    /* Smooth scrolling and typography rendering */
+    @apply bg-background text-foreground overflow-hidden selection:bg-white/20 selection:text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
   }
 }
 
 @layer utilities {
-  /* Glassmorphism premium utilities */
-  .glass {
-    @apply bg-background/60 backdrop-blur-xl border border-border/50 shadow-sm;
+  .glass-canvas {
+    @apply bg-transparent backdrop-blur-3xl;
+    box-shadow: inset 0 0 100px rgba(255,255,255,0.01);
   }
+  
   .glass-panel {
-    @apply bg-card/60 backdrop-blur-2xl border border-white/5 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20;
-  }
-  .glass-input {
-    @apply bg-background/40 backdrop-blur-md border border-border/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all;
+    @apply bg-white/[0.01] backdrop-blur-xl border border-white/5;
   }
   
-  /* Spatial Glows */
-  .glow-primary {
-    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.3);
-  }
-  .glow-hover {
-    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .glow-hover:hover {
-    box-shadow: 0 0 25px -5px hsl(var(--primary) / 0.2);
-  }
-  
-  /* Text gradients */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60;
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-white/80 to-white/30;
   }
-  .text-gradient-primary {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60;
+
+  .text-gradient-cinematic {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-[#ebd7c8] to-[#b8c2d1];
+  }
+
+  .atmospheric-glow {
+    box-shadow: 0 0 80px -20px rgba(255,255,255,0.05);
+  }
+
+  .tracking-cinematic {
+    letter-spacing: -0.04em;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
   }
 }
