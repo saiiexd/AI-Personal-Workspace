@@ -36,6 +36,7 @@ class UserRepository(BaseRepository[User]):
             last_name=last_name
         )
         db.add(profile)
+        user.profile = profile
 
         preferences = UserPreferences(
             user_id=user.id,
@@ -44,6 +45,7 @@ class UserRepository(BaseRepository[User]):
             settings_json={}
         )
         db.add(preferences)
+        user.preferences = preferences
         await db.flush()
         
         return user
