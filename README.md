@@ -54,26 +54,19 @@ cp frontend/.env.example frontend/.env.local
 
 ### 3. Start the Application
 
-The entire application (Database, Redis, FastAPI Backend, Celery Worker, and Next.js Frontend) is orchestrated via Docker Compose.
+### 3. Start the Application
+
+Run the unified startup command. This single command will check if Docker is running, spin up all containers (Database, Redis, API, Worker, and Frontend), wait for the database, and automatically run migrations:
 
 ```bash
-# Build and start all services in detached mode
-make dev
-# (or run: docker-compose up -d)
+python run.py
+# (or run: make start)
 ```
 
 The services will be available at:
 - **Frontend App**: [http://localhost:3000](http://localhost:3000)
 - **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-### 4. Database Migrations
-
-Once the stack is running, initialize your database schema:
-
-```bash
-make migrate
-# (or run: docker-compose exec api alembic upgrade head)
-```
 
 ## Repository Structure
 

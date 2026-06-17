@@ -1,7 +1,11 @@
-.PHONY: dev build down logs migrate format lint
+.PHONY: start dev build down logs migrate format lint
+
+start:
+	python run.py
 
 dev:
-	docker-compose up -d
+	python run.py
+
 
 build:
 	docker-compose build
