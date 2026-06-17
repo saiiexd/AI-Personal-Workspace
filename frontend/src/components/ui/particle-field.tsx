@@ -75,6 +75,7 @@ export function ParticleField({
           style={{
             width: p.size,
             height: p.size,
+            willChange: "transform, opacity"
           }}
         />
       ))}

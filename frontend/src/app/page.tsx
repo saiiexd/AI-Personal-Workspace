@@ -19,15 +19,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* Slow-moving deep atmospheric gradient core */}
+      {/* Slow-moving deep atmospheric gradient core (Optimized: No blur filter) */}
       <div className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-none">
-        <div className="w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,_#1a1f2b_0%,_transparent_60%)] blur-[100px] animate-pulse-slow" />
+        <div className="w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,_rgba(26,31,43,0.8)_0%,_rgba(26,31,43,0.4)_30%,_transparent_70%)] animate-pulse-slow" style={{ willChange: 'opacity' }} />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, filter: "blur(20px)" }}
-        animate={{ opacity: 1, filter: "blur(0px)" }}
-        transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 text-center flex flex-col items-center"
       >
         <span className="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8 font-medium">System Initialize</span>
