@@ -1,6 +1,6 @@
 import uuid
 from typing import Any, List
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db, get_current_user
@@ -85,13 +85,13 @@ async def get_conversation(
         db, conversation_id=conversation_id, workspace_id=workspace_id, user_id=current_user.id
     )
 
-@router.delete("/{workspace_id}/ai/conversations/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{workspace_id}/ai/conversations/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_conversation(
     workspace_id: uuid.UUID,
     conversation_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> Any:
+) -> None:
     """Delete an AI conversation."""
     await ai_service.delete_conversation(
         db, conversation_id=conversation_id, workspace_id=workspace_id, user_id=current_user.id

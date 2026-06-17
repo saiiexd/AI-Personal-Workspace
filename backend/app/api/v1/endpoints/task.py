@@ -1,7 +1,7 @@
 import uuid
 from typing import Any, List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db, get_current_user
@@ -105,13 +105,13 @@ async def update_task(
         db, task_id=task_id, workspace_id=workspace_id, user_id=current_user.id, task_in=task_in
     )
 
-@router.delete("/{workspace_id}/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{workspace_id}/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_task(
     workspace_id: uuid.UUID,
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> Any:
+) -> None:
     """Delete a specific task."""
     await task_service.delete_task(
         db, task_id=task_id, workspace_id=workspace_id, user_id=current_user.id

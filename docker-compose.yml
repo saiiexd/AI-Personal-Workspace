@@ -33,22 +33,6 @@ services:
     depends_on:
       - db
       - redis
-
-  worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: python -m celery -A app.worker.tasks worker --loglevel=info
-    volumes:
-      - ./backend:/app
-    environment:
-      - DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/ai_workspace
-      - REDIS_URL=redis://redis:6379/0
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-    depends_on:
-      - db
-      - redis
-
   web:
     build:
       context: ./frontend

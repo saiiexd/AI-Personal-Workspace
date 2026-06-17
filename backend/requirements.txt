@@ -18,3 +18,7 @@ pyjwt
 passlib[bcrypt]
 python-multipart
 httpx
+email-validator
+aiofiles
+aiosqlite
+

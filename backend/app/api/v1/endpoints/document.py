@@ -1,6 +1,6 @@
 import uuid
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, Response, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db, get_current_user
@@ -62,13 +62,13 @@ async def update_document(
         db, document_id=document_id, workspace_id=workspace_id, user_id=current_user.id, doc_in=doc_in
     )
 
-@router.delete("/{workspace_id}/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{workspace_id}/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_document(
     workspace_id: uuid.UUID,
     document_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> Any:
+) -> None:
     """Delete a specific document."""
     await document_service.delete_document(
         db, document_id=document_id, workspace_id=workspace_id, user_id=current_user.id
