@@ -1,170 +1,96 @@
 "use client";
 
-import { useState } from "react";
+import { PageTransition } from "@/components/layout/page-transition";
+import { Typography } from "@/components/ui/typography";
 import { motion } from "framer-motion";
-import { LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useAuthStore } from "@/store/auth-store";
-import { api } from "@/lib/api";
-import { useRouter } from "next/navigation";
-import { GradientArt } from "@/components/ui/gradient-art";
+import { staggerContainer, itemVariants } from "@/lib/animations";
+import { User, Shield, Palette, Zap, Globe } from "lucide-react";
 
-export default function SettingsPage() {
-  const router = useRouter();
-  const { user, updateUser, logout } = useAuthStore();
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
-  const handleSaveProfile = async () => {
-    try {
-      setIsSaving(true);
-      setMessage(null);
-      
-      const res = await api.put("/users/me/profile", {
-        first_name: firstName,
-        last_name: lastName,
-      });
-
-      updateUser({
-        firstName: res.data.profile?.first_name,
-        lastName: res.data.profile?.last_name,
-      });
-      
-      setMessage("Profile updated successfully!");
-    } catch (err: any) {
-      setMessage("Failed to update profile: " + (err.response?.data?.detail || err.message));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
-  };
+export default function PreferencesEnvironment() {
+  const sections = [
+    { id: "account", icon: User, title: "Identity & Core", description: "Manage your personal intelligence profile." },
+    { id: "appearance", icon: Palette, title: "Environment", description: "Shape the visual and atmospheric behavior of your workspace." },
+    { id: "ai", icon: Zap, title: "Intelligence Engine", description: "Configure model behavior, memory retention, and context windows." },
+    { id: "security", icon: Shield, title: "Privacy & Encryption", description: "Control how your knowledge is secured and processed." },
+    { id: "sync", icon: Globe, title: "Synchronization", description: "Manage cross-device knowledge consistency." },
+  ];
 
   return (
-    <div className="relative min-h-[85vh] w-full flex flex-col justify-between px-8 md:px-20 py-12 z-10 overflow-hidden">
-      
-      {/* Calm System Environment Artwork */}
-      <GradientArt type="settings" />
-
-      {/* Editorial Header */}
-      <div className="max-w-4xl mt-12 md:mt-20 relative z-10">
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-xs uppercase tracking-[0.3em] text-[#e0d7c7] mb-6 font-medium"
-        >
-          System Configuration
-        </motion.p>
+    <PageTransition className="min-h-screen bg-background relative pb-24">
+      <div className="max-w-5xl mx-auto px-8 pt-24 grid grid-cols-1 md:grid-cols-12 gap-12">
         
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-8xl font-light tracking-tight text-white mb-6 leading-none"
-        >
-          System <span className="italic font-serif text-[#ebd7c8]">Environment</span>
-        </motion.h1>
-
-        <p className="text-lg text-white/40 font-light leading-relaxed max-w-2xl mb-12">
-          Manage your spatial parameters, network credentials, and active partner node profile details.
-        </p>
-      </div>
-
-      {/* Editorial Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20 mt-12 relative z-10 border-t border-white/5 pt-12">
-        
-        {/* Navigation Sidebar */}
-        <div className="space-y-4">
-          <div className="text-xs uppercase tracking-widest text-[#ebd7c8] font-medium pb-2 border-b border-white/5">
-            Parameters
-          </div>
-          <button className="w-full text-left text-sm text-white/80 hover:text-white transition-colors py-1">
-            Profile Credentials
-          </button>
-          <button className="w-full text-left text-sm text-white/40 hover:text-white transition-colors py-1">
-            Vector Preferences
-          </button>
-          <button className="w-full text-left text-sm text-white/40 hover:text-white transition-colors py-1">
-            Security Tokens
-          </button>
-          
-          <div className="pt-8">
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#e6cabc] hover:text-[#ebd7c8] transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Disconnect Session</span>
-            </button>
-          </div>
+        {/* Navigation Column */}
+        <div className="md:col-span-4 lg:col-span-3">
+          <Typography variant="h3" className="mb-8">Preferences</Typography>
+          <nav className="space-y-2">
+            {sections.map((section, i) => (
+              <button 
+                key={section.id}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${
+                  i === 0 
+                    ? "bg-white/10 text-white font-medium shadow-[0_0_20px_-10px_rgba(255,255,255,0.3)]" 
+                    : "text-white/50 hover:bg-white/[0.05] hover:text-white/80"
+                }`}
+              >
+                <section.icon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">{section.title}</span>
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Configurations Form */}
-        <div className="md:col-span-2 space-y-8 max-w-xl">
-          <div className="text-xs uppercase tracking-widest text-white/30 pb-2 border-b border-white/5">
-            Profile Details
-          </div>
-
-          {message && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-xs text-[#c8dad1] tracking-wide"
-            >
-              {message}
+        {/* Content Column */}
+        <div className="md:col-span-8 lg:col-span-9">
+          <motion.div variants={staggerContainer} initial="hidden" animate="show" className="pt-2">
+            <motion.div variants={itemVariants} className="mb-12">
+              <Typography variant="h2" className="mb-2">Identity & Core</Typography>
+              <Typography variant="muted">Manage your personal intelligence profile and fundamental workspace settings.</Typography>
             </motion.div>
-          )}
 
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#e0d7c7] to-[#b8c2d1] flex items-center justify-center text-black font-medium text-lg">
-                {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase()}
+            <motion.div variants={itemVariants} className="space-y-8">
+              
+              {/* Profile Card */}
+              <div className="glass-panel rounded-3xl p-8 flex items-center gap-8">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px]">
+                  <div className="w-full h-full bg-background rounded-full flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white/10" />
+                    <User className="w-10 h-10 text-white/80 relative z-10" />
+                  </div>
+                </div>
+                <div>
+                  <Typography variant="h4" className="mb-1">Alex Mercer</Typography>
+                  <Typography variant="muted" className="mb-4">alex@example.com</Typography>
+                  <button className="px-4 py-1.5 rounded-full bg-white/10 text-xs font-medium hover:bg-white/20 transition-colors">
+                    Update Profile
+                  </button>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-white/30 block mb-1">Active Account</span>
-                <span className="text-sm text-white/60 font-mono">{user?.email}</span>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-white/40">First Name</label>
-                <Input 
-                  value={firstName} 
-                  onChange={(e) => setFirstName(e.target.value)} 
-                  className="bg-white/[0.02] border-white/5 h-11 rounded-full text-xs placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/10" 
-                />
+              {/* Form Section */}
+              <div className="glass-panel rounded-3xl p-8 space-y-6">
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-white/50 font-medium mb-2 block">Workspace Name</label>
+                  <input 
+                    type="text" 
+                    defaultValue="Alex's Neural Core"
+                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-white/50 font-medium mb-2 block">Knowledge Domain Focus</label>
+                  <select className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors appearance-none">
+                    <option>Software Engineering & Architecture</option>
+                    <option>Product Design & UX</option>
+                    <option>General Research</option>
+                  </select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-white/40">Last Name</label>
-                <Input 
-                  value={lastName} 
-                  onChange={(e) => setLastName(e.target.value)} 
-                  className="bg-white/[0.02] border-white/5 h-11 rounded-full text-xs placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/10" 
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="pt-6">
-            <button 
-              onClick={handleSaveProfile} 
-              disabled={isSaving}
-              className="h-11 px-6 rounded-full bg-white/5 border border-white/10 hover:bg-white hover:text-black hover:border-white transition-all text-xs font-medium tracking-wider text-[#ebd7c8]"
-            >
-              {isSaving ? "Syncing..." : "Save Parameters"}
-            </button>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
 
       </div>
-
-      <div className="mt-16 pt-8 border-t border-white/5" />
-
-    </div>
+    </PageTransition>
   );
 }

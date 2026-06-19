@@ -1,88 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { PageTransition } from "@/components/layout/page-transition";
+import { Typography } from "@/components/ui/typography";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { staggerContainer, itemVariants } from "@/lib/animations";
+import { CheckCircle2, Circle, Flame, Target } from "lucide-react";
 
-export default function TasksPage() {
-  const [tasks, setTasks] = useState([
-    { id: "1", title: "Refine atmospheric visual systems", completed: false },
-    { id: "2", title: "Initialize new knowledge graph vector embeddings", completed: false },
-    { id: "3", title: "Complete system teardown of old SaaS artifacts", completed: true },
-    { id: "4", title: "Establish deep space color palette", completed: true },
-  ]);
-
-  const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-  };
+export default function MomentumExperience() {
+  const tasks = [
+    { title: "Finalize Architecture Review", context: "Blocks Q3 Engineering", urgency: "High", completed: false },
+    { title: "Synthesize user research interviews", context: "Connected to 3 documents", urgency: "Medium", completed: false },
+    { title: "Update personal reading list", context: "Maintenance", urgency: "Low", completed: true },
+    { title: "Draft Q4 OKRs", context: "Strategic Planning", urgency: "High", completed: false },
+  ];
 
   return (
-    <div className="min-h-full w-full flex flex-col justify-start px-12 md:px-32 py-32 relative">
-      
-      <div className="max-w-4xl w-full mx-auto z-10">
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          className="text-[10px] uppercase tracking-[0.3em] text-white/30 mb-16 font-medium"
-        >
-          Active Directives
-        </motion.p>
-        
-        <div className="flex flex-col gap-12">
-          {tasks.map((task, i) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              onClick={() => toggleTask(task.id)}
-              className="group cursor-pointer flex items-center gap-8"
-            >
-              <div className="relative flex items-center justify-center w-8 h-8">
-                {/* Minimalist interactive node indicator */}
-                <div className={cn(
-                  "w-1.5 h-1.5 rounded-full transition-all duration-700",
-                  task.completed ? "bg-white/20" : "bg-white group-hover:scale-150"
-                )} />
-                {task.completed && (
-                  <div className="absolute inset-0 rounded-full border border-white/10 scale-150 animate-ping opacity-0" />
+    <PageTransition className="min-h-screen bg-background relative pb-24">
+      <div className="max-w-4xl mx-auto px-8 pt-32">
+        <motion.div variants={staggerContainer} initial="hidden" animate="show">
+          
+          <motion.div variants={itemVariants} className="mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                <Flame className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <span className="text-sm font-medium tracking-widest uppercase text-white/50 block">Current Momentum</span>
+                <span className="text-orange-400 font-medium">4 Day Streak</span>
+              </div>
+            </div>
+            <Typography variant="display" className="text-6xl mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">
+              Deep Focus
+            </Typography>
+            <Typography variant="lead">
+              You have completed 12 items this week. 2 high-leverage tasks remain.
+            </Typography>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="space-y-4">
+            {tasks.map((task, i) => (
+              <div 
+                key={i} 
+                className={`group flex items-center gap-6 p-6 rounded-3xl border transition-all duration-500 cursor-pointer ${
+                  task.completed 
+                    ? "bg-white/[0.01] border-transparent opacity-50" 
+                    : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/10 hover:shadow-lg hover:-translate-y-1"
+                }`}
+              >
+                <button className="shrink-0 text-white/30 group-hover:text-primary transition-colors">
+                  {task.completed ? <CheckCircle2 className="w-6 h-6 text-primary" /> : <Circle className="w-6 h-6" />}
+                </button>
+                
+                <div className="flex-1">
+                  <h3 className={`text-lg font-medium mb-1 transition-colors ${task.completed ? "line-through text-white/50" : "text-white group-hover:text-primary"}`}>
+                    {task.title}
+                  </h3>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-white/40">{task.context}</span>
+                    {!task.completed && (
+                      <>
+                        <span className="w-1 h-1 rounded-full bg-white/20" />
+                        <span className={`flex items-center gap-1 ${task.urgency === 'High' ? 'text-orange-400' : 'text-white/40'}`}>
+                          {task.urgency === 'High' && <Target className="w-3 h-3" />}
+                          {task.urgency} Leverage
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {!task.completed && (
+                  <div className="hidden md:flex items-center">
+                    <div className="h-1 w-24 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-white/20 w-1/3 group-hover:bg-primary transition-colors duration-500" />
+                    </div>
+                  </div>
                 )}
               </div>
-              
-              <div className="flex-1 relative">
-                <h3 className={cn(
-                  "text-2xl md:text-4xl font-light tracking-tight transition-all duration-700",
-                  task.completed ? "text-white/20" : "text-white/80 group-hover:text-white"
-                )}>
-                  {task.title}
-                </h3>
-                {/* Organic strikethrough line */}
-                <div 
-                  className="absolute top-1/2 left-0 h-[1px] bg-white/30 transition-all duration-1000 ease-[0.16,1,0.3,1]"
-                  style={{ width: task.completed ? "100%" : "0%" }}
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
+            ))}
+          </motion.div>
 
-        {/* Global Input Line */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="mt-32"
-        >
-          <input
-            type="text"
-            placeholder="Assign new directive..."
-            className="w-full bg-transparent border-b border-white/[0.05] pb-4 text-xl font-light text-white outline-none placeholder:text-white/20 focus:border-white/30 transition-colors duration-700"
-          />
         </motion.div>
-
       </div>
-
-    </div>
+    </PageTransition>
   );
 }

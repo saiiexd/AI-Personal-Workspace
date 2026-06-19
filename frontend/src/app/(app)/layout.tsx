@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/documents", label: "Knowledge" },
   { href: "/notes", label: "Memory" },
   { href: "/tasks", label: "Directives" },
+  { href: "/search", label: "Discovery" },
   { href: "/settings", label: "System" },
 ];
 

@@ -32,14 +32,19 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
   
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-float: float 6s ease-in-out infinite;
-  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-float-slow: float 12s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-reverse-spin: reverse-spin 16s linear infinite;
+  --animate-mesh: mesh 10s ease-in-out infinite alternate;
 
   @keyframes accordion-down {
     from { height: 0; }
@@ -50,17 +55,22 @@
     to { height: 0; }
   }
   @keyframes float {
-    0% { transform: translateY(0px); }
+    0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
   }
   @keyframes shimmer {
-    from { background-position: 200% 0; }
-    to { background-position: -200% 0; }
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
   @keyframes reverse-spin {
     from { transform: rotate(360deg); }
     to { transform: rotate(0deg); }
+  }
+  @keyframes mesh {
+    0% { transform: scale(1) translate(0, 0); }
+    33% { transform: scale(1.1) translate(3%, 3%); }
+    66% { transform: scale(0.9) translate(-3%, 3%); }
+    100% { transform: scale(1) translate(0, -3%); }
   }
 }
 
@@ -77,93 +87,98 @@
 @layer base {
   :root {
     color-scheme: dark;
-    /* Deep space black everywhere, strict dark mode enforcement */
-    --background: 0 0% 2%; 
+    /* 
+      Premium Dark Theme inspired by Linear/Vercel/Stripe
+      Deep black background, graphite surfaces, high-contrast white text
+    */
+    --background: 240 10% 4%; 
     --foreground: 0 0% 98%;
     
-    /* "Cards" and "Popovers" are effectively invisible or glass */
-    --card: 0 0% 2%;
+    --card: 240 10% 6%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3%;
+    --popover: 240 10% 6%;
     --popover-foreground: 0 0% 98%;
     
-    /* Intelligent Accent Colors */
-    --primary: 220 10% 90%; 
-    --primary-foreground: 0 0% 2%;
+    /* Indigo/Ultraviolet accents */
+    --primary: 250 80% 65%; 
+    --primary-foreground: 0 0% 100%;
     
-    --secondary: 0 0% 5%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 240 10% 10%;
+    --secondary-foreground: 0 0% 90%;
     
-    --muted: 0 0% 5%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 65%;
     
-    --accent: 0 0% 8%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 250 40% 15%;
+    --accent-foreground: 250 80% 85%;
     
-    --destructive: 0 70% 45%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 0 0% 8%;
-    --input: 0 0% 5%;
-    --ring: 0 0% 80%;
+    --border: 240 10% 12%;
+    --input: 240 10% 12%;
+    --ring: 250 80% 65%;
     
-    --radius: 0; /* Removing traditional rounded borders for an edge-to-edge feel where needed, though we can use tailwind classes for circles */
+    --radius: 0.5rem; 
   }
 
   .dark {
-    /* Same as root to prevent any flashes */
-    --background: 0 0% 2%; 
+    --background: 240 10% 4%; 
     --foreground: 0 0% 98%;
-    --card: 0 0% 2%;
+    --card: 240 10% 6%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3%;
+    --popover: 240 10% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 220 10% 90%; 
-    --primary-foreground: 0 0% 2%;
-    --secondary: 0 0% 5%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 5%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 0 0% 8%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 70% 45%;
+    --primary: 250 80% 65%; 
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 10%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 250 40% 15%;
+    --accent-foreground: 250 80% 85%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 8%;
-    --input: 0 0% 5%;
-    --ring: 0 0% 80%;
+    --border: 240 10% 12%;
+    --input: 240 10% 12%;
+    --ring: 250 80% 65%;
   }
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground overflow-hidden selection:bg-white/20 selection:text-white;
+    @apply bg-background text-foreground overflow-x-hidden selection:bg-primary/30 selection:text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
   }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
 }
 
 @layer utilities {
-  .glass-canvas {
-    @apply bg-transparent backdrop-blur-3xl;
-    box-shadow: inset 0 0 100px rgba(255,255,255,0.01);
-  }
-  
   .glass-panel {
-    @apply bg-white/[0.01] backdrop-blur-xl border border-white/5;
+    @apply bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.12)];
   }
   
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-white/80 to-white/30;
+  .glass-card {
+    @apply bg-secondary/40 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.2)];
   }
 
-  .text-gradient-cinematic {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-[#ebd7c8] to-[#b8c2d1];
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-white via-white/90 to-white/40;
+  }
+
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-indigo-400 via-purple-400 to-cyan-400;
   }
 
   .atmospheric-glow {
-    box-shadow: 0 0 80px -20px rgba(255,255,255,0.05);
+    box-shadow: 0 0 100px -20px var(--color-primary);
+    opacity: 0.15;
   }
 
   .tracking-cinematic {
@@ -171,8 +186,8 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar {
-    width: 2px;
-    height: 2px;
+    width: 6px;
+    height: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
