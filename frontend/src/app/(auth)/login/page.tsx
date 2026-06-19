@@ -49,8 +49,8 @@ export default function LoginPage() {
       
       login(profileRes.data, access_token);
       router.push("/workspaces");
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Invalid email or password");
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Invalid email or password");
     }
   };
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
       </form>
 
       <div className="text-center text-sm">
-        <span className="text-muted-foreground">Don't have an account? </span>
+        <span className="text-muted-foreground">Don&apos;t have an account? </span>
         <Link href="/register" className="font-medium text-primary hover:underline">
           Sign up
         </Link>

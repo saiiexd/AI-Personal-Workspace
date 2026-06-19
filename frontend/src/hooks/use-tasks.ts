@@ -91,7 +91,7 @@ export function useTasks(filters?: { status?: TaskStatus; priority?: TaskPriorit
 
       return { previousTasks };
     },
-    onError: (err, newTodo, context: any) => {
+    onError: (err, newTodo, context: { previousTasks?: { items: Task[]; total: number } }) => {
       if (context?.previousTasks) {
         queryClient.setQueryData(["tasks", workspaceId, filters], context.previousTasks);
       }

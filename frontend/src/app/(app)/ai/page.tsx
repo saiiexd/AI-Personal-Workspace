@@ -1,121 +1,182 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Typography } from "@/components/ui/typography";
-import { MeshGradient } from "@/components/ui/mesh-gradient";
-import { motion } from "framer-motion";
-import { staggerContainer, itemVariants } from "@/lib/animations";
-import { Send, Sparkles, BookOpen, Clock, Fingerprint } from "lucide-react";
+import { useAI } from "@/hooks/use-ai";
+import { Send, Bot, User, Plus, MessageSquare, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function IntelligenceWorkspace() {
+export default function AIPage() {
+  const { conversations, isConversationsLoading, createConversation, deleteConversation } = useAI();
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+
+  // Auto-select first conversation or create one if none exist
+  useEffect(() => {
+    if (!isConversationsLoading && conversations.length > 0 && !activeConversationId) {
+      setActiveConversationId(conversations[0].id);
+    }
+  }, [conversations, isConversationsLoading, activeConversationId]);
+
+  const handleNewConversation = async () => {
+    const newConv = await createConversation.mutateAsync("New Conversation");
+    setActiveConversationId(newConv.id);
+  };
+
   return (
-    <PageTransition className="min-h-screen relative flex flex-col h-screen">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <MeshGradient colors={["from-indigo-600/10", "via-purple-600/10", "to-fuchsia-600/10", "bg-background"]} />
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
-      </div>
-
-      <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10 pb-32">
-        <div className="max-w-4xl mx-auto px-8 pt-24">
-          <motion.div initial="hidden" animate="show" variants={staggerContainer} className="flex flex-col gap-12">
-            
-            {/* Context Header */}
-            <motion.div variants={itemVariants} className="text-center mb-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6 relative">
-                <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse" />
-                <Fingerprint className="w-8 h-8 text-primary relative z-10" />
+    <PageTransition className="h-[calc(100vh-8rem)] flex overflow-hidden rounded-2xl border border-border bg-card">
+      {/* Sidebar - Conversation List */}
+      <div className="w-64 border-r border-border bg-background/50 flex flex-col">
+        <div className="p-4 border-b border-border flex justify-between items-center">
+          <Typography variant="muted" className="font-medium text-foreground">Chat History</Typography>
+          <Button variant="ghost" size="icon" onClick={handleNewConversation}>
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+          {isConversationsLoading ? (
+            <div className="p-4 text-center text-sm text-muted-foreground animate-pulse">Loading...</div>
+          ) : conversations.length === 0 ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">No conversations yet</div>
+          ) : (
+            conversations.map((conv) => (
+              <div 
+                key={conv.id}
+                onClick={() => setActiveConversationId(conv.id)}
+                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors group ${
+                  activeConversationId === conv.id ? "bg-primary/10 text-primary" : "hover:bg-card text-foreground"
+                }`}
+              >
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <MessageSquare className="w-4 h-4 shrink-0" />
+                  <span className="text-sm truncate">{conv.title}</span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="w-6 h-6 opacity-0 group-hover:opacity-100 hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteConversation.mutateAsync(conv.id);
+                    if (activeConversationId === conv.id) setActiveConversationId(null);
+                  }}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
               </div>
-              <Typography variant="h2" className="mb-4">Intelligence Workspace</Typography>
-              <Typography variant="lead">
-                I am synthesizing information across your 1,248 documents and 342 notes. How can I assist your deep work today?
-              </Typography>
-            </motion.div>
-
-            {/* Conversation Flow - Premium Presentation */}
-            <div className="space-y-16">
-              {/* User Input representation */}
-              <motion.div variants={itemVariants} className="flex flex-col items-end">
-                <div className="max-w-[80%] bg-white/5 border border-white/10 rounded-3xl rounded-tr-sm p-6 backdrop-blur-sm">
-                  <Typography variant="p" className="mt-0 text-white/90 text-lg">
-                    Summarize the key architectural decisions from my Q3 engineering documents and relate them to our current technical debt.
-                  </Typography>
-                </div>
-              </motion.div>
-
-              {/* AI Response Presentation */}
-              <motion.div variants={itemVariants} className="flex flex-col items-start w-full">
-                <div className="flex items-center gap-3 mb-4 text-primary">
-                  <Sparkles className="w-5 h-5" />
-                  <span className="text-sm font-medium tracking-widest uppercase">Synthesizing Knowledge</span>
-                </div>
-                
-                <div className="w-full glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500" />
-                  
-                  <Typography variant="p" className="text-lg leading-relaxed text-white/80 mt-0 mb-8">
-                    Based on an analysis of <span className="text-white font-medium border-b border-white/20 pb-0.5 cursor-pointer">5 referenced documents</span>, the architectural decisions from Q3 reflect a shift towards micro-frontends and event-driven backends.
-                  </Typography>
-
-                  {/* Contextual Citations / Knowledge Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 hover:bg-white/[0.05] transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2 mb-3 text-white/40">
-                        <BookOpen className="w-4 h-4" />
-                        <span className="text-xs uppercase tracking-wider">Architecture_v3.pdf</span>
-                      </div>
-                      <p className="text-sm text-white/70">&ldquo;Moving to an event-driven model will decouple the notification service from the main monolith...&rdquo;</p>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 hover:bg-white/[0.05] transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2 mb-3 text-white/40">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-xs uppercase tracking-wider">Q3_Planning_Notes.md</span>
-                      </div>
-                      <p className="text-sm text-white/70">&ldquo;Technical debt in the routing layer must be addressed before implementing micro-frontends.&rdquo;</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-white/10">
-                    <Typography variant="h4" className="mb-4 text-white">Impact on Technical Debt</Typography>
-                    <ul className="space-y-4">
-                      <li className="flex gap-4">
-                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                        <span className="text-white/70">The event-driven shift mitigates debt in the synchronous API layer but introduces new observability challenges.</span>
-                      </li>
-                      <li className="flex gap-4">
-                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                        <span className="text-white/70">Routing layer debt was explicitly flagged as a blocker.</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-          </motion.div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* Floating Premium Input Bar */}
-      <div className="absolute bottom-0 left-0 w-full p-8 z-20 bg-gradient-to-t from-background via-background to-transparent">
-        <div className="max-w-4xl mx-auto relative">
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-cyan-400/30 rounded-[32px] blur-lg opacity-50" />
-          <div className="relative bg-background border border-white/10 rounded-[28px] p-2 flex items-end shadow-2xl">
-            <textarea 
-              className="w-full bg-transparent min-h-[56px] max-h-48 resize-none text-foreground p-4 focus:outline-none custom-scrollbar text-lg"
-              placeholder="Ask anything about your knowledge base..."
-              rows={1}
-            />
-            <div className="p-2 shrink-0">
-              <Button size="icon" className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90">
-                <Send className="w-5 h-5" />
-              </Button>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-card">
+        {activeConversationId ? (
+          <ChatArea conversationId={activeConversationId} />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Bot className="w-8 h-8 text-primary" />
             </div>
+            <Typography variant="h3" className="mb-2">AI Assistant</Typography>
+            <Typography variant="muted" className="mb-6 max-w-md">
+              Ask questions, generate ideas, or analyze your workspace data (documents, notes, tasks).
+            </Typography>
+            <Button onClick={handleNewConversation}>Start a new conversation</Button>
           </div>
-        </div>
+        )}
+      </div>
+    </PageTransition>
+  );
+}
+
+function ChatArea({ conversationId }: { conversationId: string }) {
+  const { messages, isMessagesLoading, sendMessage } = useAI(conversationId);
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || sendMessage.isPending) return;
+    
+    const userMessage = input;
+    setInput("");
+    
+    try {
+      await sendMessage.mutateAsync({ content: userMessage });
+    } catch (error) {
+      console.error("Failed to send message", error);
+      // Restore input on failure
+      setInput(userMessage);
+    }
+  };
+
+  return (
+    <>
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        {isMessagesLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+            <Bot className="w-12 h-12 mb-4 opacity-20" />
+            <p>Send a message to start chatting</p>
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <div 
+              key={msg.id} 
+              className={`flex gap-4 max-w-3xl mx-auto ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+              }`}>
+                {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+              </div>
+              <div className={`p-4 rounded-2xl ${
+                msg.role === "user" 
+                  ? "bg-primary text-primary-foreground rounded-tr-sm" 
+                  : "bg-muted text-foreground rounded-tl-sm"
+              }`}>
+                {msg.content === "..." ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
-    </PageTransition>
+      {/* Input Area */}
+      <div className="p-4 border-t border-border bg-background/50">
+        <form onSubmit={handleSend} className="max-w-3xl mx-auto relative">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Message AI..."
+            className="w-full bg-card border border-border rounded-full pl-6 pr-14 py-4 text-sm focus:outline-none focus:border-primary transition-colors"
+            disabled={sendMessage.isPending}
+          />
+          <Button 
+            type="submit" 
+            size="icon" 
+            className="absolute right-2 top-2 rounded-full w-10 h-10 bg-primary hover:bg-primary/90 text-primary-foreground"
+            disabled={!input.trim() || sendMessage.isPending}
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </form>
+      </div>
+    </>
   );
 }

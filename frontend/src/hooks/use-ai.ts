@@ -15,7 +15,7 @@ export interface AIMessage {
   conversation_id: string;
   role: "user" | "assistant" | "system";
   content: string;
-  context_sources: any | null;
+  context_sources: unknown | null;
   created_at: string;
 }
 
@@ -112,7 +112,7 @@ export function useAI(conversationId: string | null = null) {
 
       return { previousMessages };
     },
-    onError: (err, newMsg, context: any) => {
+    onError: (err, newMsg, context: { previousMessages?: AIMessage[] }) => {
       if (context?.previousMessages) {
         queryClient.setQueryData(["ai-messages", workspaceId, conversationId], context.previousMessages);
       }

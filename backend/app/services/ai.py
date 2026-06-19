@@ -9,8 +9,13 @@ from app.database.models import Workspace, AIConversation, AIConversationMessage
 from app.repositories.ai import ai_conversation_repo, ai_message_repo
 from app.repositories.workspace import workspace_repo
 from app.schemas.ai import AIConversationCreate, AIMessageCreate, SearchQuery, SearchResultItem
+from app.core.config import settings
+from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
+
+# Initialize OpenAI Client
+aclient = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
 class AIService:
     async def get_workspace(self, db: AsyncSession, workspace_id: uuid.UUID, user_id: uuid.UUID) -> Workspace:
@@ -54,18 +59,43 @@ class AIService:
             
         return results
 
-    async def generate_rag_response(self, db: AsyncSession, workspace_id: uuid.UUID, query: str) -> str:
+    async def generate_rag_response(self, db: AsyncSession, workspace_id: uuid.UUID, query: str, previous_messages: List[AIConversationMessage] = None) -> Tuple[str, str, int]:
         """Generate a response augmented by semantic search context."""
-        search_results = await self.semantic_search(db, workspace_id, query, limit=3)
+        search_results = await self.semantic_search(db, workspace_id, query, limit=5)
         
         context = "\n\n".join([f"Source: {res.title}\n{res.content}" for res in search_results])
         
-        # In a real app, call OpenAI or LLM provider here
-        # prompt = f"Context:\n{context}\n\nQuestion: {query}"
-        # response = await llm_provider.generate(prompt)
+        system_prompt = (
+            "You are an AI assistant for a personal workspace. "
+            "Use the provided context to answer the user's question. "
+            "If the answer is not in the context, just answer to the best of your ability but mention that you couldn't find it in the workspace."
+        )
         
-        mock_response = f"This is a mocked RAG response for: '{query}'. Context provided from {len(search_results)} sources."
-        return mock_response
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        if previous_messages:
+            for msg in previous_messages[-5:]:  # Include last 5 messages for conversation context
+                messages.append({"role": msg.role, "content": msg.content})
+                
+        user_prompt = f"Context:\n{context}\n\nQuestion: {query}"
+        messages.append({"role": "user", "content": user_prompt})
+        
+        try:
+            response = await aclient.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1000,
+            )
+            
+            content = response.choices[0].message.content
+            model_used = response.model
+            token_count = response.usage.total_tokens if response.usage else 0
+            
+            return content, model_used, token_count
+        except Exception as e:
+            logger.error(f"Failed to generate AI response: {str(e)}")
+            return "I'm sorry, I encountered an error while trying to generate a response. Please check if the OpenAI API key is configured correctly.", "error", 0
 
     # Conversation Operations
     async def create_conversation(
@@ -115,19 +145,24 @@ class AIService:
             "content": message_in.content
         })
         
-        # 2. Generate RAG Response
-        assistant_content = await self.generate_rag_response(db, workspace_id, message_in.content)
+        # 2. Get Previous Messages for Context
+        previous_messages = await ai_message_repo.get_by_conversation(db, conversation_id)
         
-        # 3. Save Assistant Message
+        # 3. Generate RAG Response
+        assistant_content, model_used, token_count = await self.generate_rag_response(
+            db, workspace_id, message_in.content, previous_messages
+        )
+        
+        # 4. Save Assistant Message
         assistant_msg = await ai_message_repo.create(db, obj_in={
             "conversation_id": conversation_id,
             "role": MessageRole.ASSISTANT,
             "content": assistant_content,
-            "model_used": "mock-llm-1.0",
-            "token_count": 150
+            "model_used": model_used,
+            "token_count": token_count
         })
         
-        # 4. Auto-update conversation title if it's the first message
+        # 5. Auto-update conversation title if it's the first message
         messages = await ai_message_repo.get_by_conversation(db, conversation_id)
         if len(messages) <= 2 and conv.title == "New Conversation":
             conv.title = message_in.content[:50] + "..." if len(message_in.content) > 50 else message_in.content
@@ -151,6 +186,19 @@ class AIService:
         if not doc or doc.workspace_id != workspace_id or doc.deleted_at is not None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
         
-        return f"Mock summary for document: {doc.title}"
+        try:
+            response = await aclient.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an assistant that summarizes documents. Provide a concise, clear summary of the following document content."},
+                    {"role": "user", "content": f"Document Title: {doc.title}\n\nPlease summarize the document."}
+                ],
+                temperature=0.5,
+                max_tokens=500,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Failed to summarize document: {str(e)}")
+            return f"Mock summary for document: {doc.title} (AI Summarization Failed)"
 
 ai_service = AIService()

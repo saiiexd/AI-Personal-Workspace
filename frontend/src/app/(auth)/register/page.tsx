@@ -52,8 +52,8 @@ export default function RegisterPage() {
       
       login(profileRes.data, access_token);
       router.push("/workspaces");
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Registration failed. Please try again.");
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Registration failed. Please try again.");
     }
   };
 

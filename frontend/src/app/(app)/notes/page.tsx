@@ -1,99 +1,117 @@
 "use client";
 
+import { useState } from "react";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Typography } from "@/components/ui/typography";
-import { motion } from "framer-motion";
-import { staggerContainer, itemVariants } from "@/lib/animations";
-import { PenTool, BrainCircuit, Share2, MoreHorizontal } from "lucide-react";
+import { useNotes } from "@/hooks/use-notes";
+import { Plus, Edit3, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function NotesExperience() {
+export default function NotesPage() {
+  const { notes, isLoading, createNote, deleteNote } = useNotes();
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+
+  const handleCreateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newContent.trim()) return;
+    try {
+      await createNote.mutateAsync({
+        title: newTitle,
+        content: newContent,
+      });
+      setNewTitle("");
+      setNewContent("");
+      setIsAdding(false);
+    } catch (error) {
+      console.error("Failed to create note", error);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    if (confirm("Are you sure you want to delete this note?")) {
+      await deleteNote.mutateAsync(id);
+    }
+  };
+
   return (
-    <PageTransition className="min-h-screen bg-background relative flex overflow-hidden">
-      
-      {/* Immersive Writing Environment */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10 px-8 py-24">
-        <div className="max-w-3xl mx-auto">
-          
-          <motion.div initial="hidden" animate="show" variants={staggerContainer}>
-            <motion.div variants={itemVariants} className="flex items-center gap-4 mb-16">
-              <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/50 tracking-widest uppercase">
-                Draft
-              </div>
-              <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs text-primary tracking-widest uppercase flex items-center gap-2">
-                <BrainCircuit className="w-3 h-3" />
-                AI Context Active
-              </div>
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <textarea 
-                className="w-full bg-transparent text-5xl md:text-7xl font-display font-light text-white tracking-tight resize-none focus:outline-none mb-8 placeholder:text-white/20"
-                placeholder="Title..."
-                defaultValue="The Future of Contextual Interfaces"
-                rows={2}
-              />
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="prose prose-invert prose-lg max-w-none">
-              <textarea 
-                className="w-full bg-transparent text-xl leading-relaxed text-white/80 resize-none focus:outline-none min-h-[50vh] custom-scrollbar placeholder:text-white/20"
-                placeholder="Start writing..."
-                defaultValue="Interfaces are no longer static canvases; they are fluid environments that mold themselves to the user's intent. When we consider the progression of UI paradigms, we move from the mechanical manipulation of the command line, to the spatial metaphors of the desktop, and now, to the semantic fluidty of the AI era."
-              />
-            </motion.div>
-          </motion.div>
+    <PageTransition className="pb-24">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Typography variant="h1" className="mb-2">Notes</Typography>
+            <Typography variant="muted">Capture ideas, draft documents, and build knowledge.</Typography>
+          </div>
+          <Button onClick={() => setIsAdding(true)} className="rounded-full">
+            <Plus className="w-4 h-4 mr-2" />
+            New Note
+          </Button>
         </div>
+
+        {/* Note Form */}
+        {isAdding && (
+          <form onSubmit={handleCreateNote} className="mb-8 p-6 border border-border rounded-xl bg-card shadow-sm">
+            <input
+              type="text"
+              autoFocus
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Note Title"
+              className="w-full bg-transparent border-b border-border/50 text-foreground focus:outline-none focus:border-primary text-2xl font-medium mb-4 pb-2 transition-colors"
+            />
+            <textarea
+              value={newContent}
+              onChange={(e) => setNewContent(e.target.value)}
+              placeholder="Start writing..."
+              rows={4}
+              className="w-full bg-transparent border-none text-foreground/80 focus:outline-none focus:ring-0 text-base mb-6 resize-y"
+            />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setIsAdding(false)}>Cancel</Button>
+              <Button type="submit" disabled={!newTitle.trim() || !newContent.trim() || createNote.isPending}>
+                {createNote.isPending ? "Saving..." : "Save Note"}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground animate-pulse">Loading notes...</div>
+        ) : notes.length === 0 && !isAdding ? (
+          <div className="text-center py-24 border border-dashed border-border rounded-xl">
+            <Typography variant="muted" className="mb-4">Your workspace is empty.</Typography>
+            <Button variant="outline" onClick={() => setIsAdding(true)}>Write your first note</Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {notes.map((note) => (
+              <div 
+                key={note.id} 
+                className="group flex flex-col p-6 rounded-xl border border-border bg-card hover:border-foreground/20 hover:shadow-sm transition-all duration-200 cursor-pointer h-48"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-lg font-medium text-foreground line-clamp-1">{note.title}</h3>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <Edit3 className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-4 flex-1">
+                  {note.content}
+                </p>
+                <div className="mt-4 pt-4 border-t border-border/50 flex justify-between items-center text-xs text-muted-foreground">
+                  <span>{new Date(note.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Contextual Intelligence Sidebar - Premium Glass Panel */}
-      <motion.div 
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-96 border-l border-white/5 bg-white/[0.01] backdrop-blur-3xl hidden lg:flex flex-col relative z-20"
-      >
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <Typography variant="small" className="text-white/50 uppercase tracking-widest">Intelligence</Typography>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-white/50"><Share2 className="w-4 h-4" /></Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-white/50"><MoreHorizontal className="w-4 h-4" /></Button>
-          </div>
-        </div>
-        
-        <div className="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-8">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <BrainCircuit className="w-4 h-4 text-primary" />
-              <Typography variant="small" className="text-white">Semantic Connections</Typography>
-            </div>
-            <div className="space-y-3">
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05] cursor-pointer transition-colors">
-                <p className="text-sm font-medium text-white mb-1">Spatial Computing Notes</p>
-                <p className="text-xs text-white/40">Strong overlap with your thoughts on spatial metaphors.</p>
-              </div>
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05] cursor-pointer transition-colors">
-                <p className="text-sm font-medium text-white mb-1">Apple Vision Pro Analysis.pdf</p>
-                <p className="text-xs text-white/40">Contains highly relevant data on UI fluidity.</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <PenTool className="w-4 h-4 text-cyan-400" />
-              <Typography variant="small" className="text-white">AI Suggestions</Typography>
-            </div>
-            <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20">
-              <p className="text-sm text-white/80 leading-relaxed mb-3">
-                Consider elaborating on &ldquo;semantic fluidity&rdquo;. Do you mean the interface changing its layout dynamically, or the content itself adapting to user knowledge?
-              </p>
-              <Button variant="outline" size="sm" className="w-full text-xs">Generate Expansion</Button>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
     </PageTransition>
   );
 }

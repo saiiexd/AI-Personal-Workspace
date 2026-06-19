@@ -60,7 +60,7 @@ export function useNotes(searchQuery: string = "") {
 
       return { previousNotes };
     },
-    onError: (err, newTodo, context: any) => {
+    onError: (err, newTodo, context: { previousNotes?: Note[] }) => {
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes", workspaceId, searchQuery], context.previousNotes);
       }

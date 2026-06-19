@@ -2,123 +2,129 @@
 
 import { PageTransition } from "@/components/layout/page-transition";
 import { Typography } from "@/components/ui/typography";
-import { MeshGradient } from "@/components/ui/mesh-gradient";
-import { motion } from "framer-motion";
-import { staggerContainer, itemVariants } from "@/lib/animations";
-import { ArrowUpRight, Brain, Activity, Database, Sparkles } from "lucide-react";
+import { useTasks } from "@/hooks/use-tasks";
+import { useNotes } from "@/hooks/use-notes";
+import { useDocuments } from "@/hooks/use-documents";
+import { CheckCircle2, Clock, FileText, Database, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default function MissionControlPage() {
+export default function DashboardPage() {
+  const { tasks, total: totalTasks, isLoading: isTasksLoading } = useTasks();
+  const { notes, isLoading: isNotesLoading } = useNotes();
+  const { total: totalDocs, isLoading: isDocsLoading } = useDocuments();
+
+  const pendingTasks = tasks.filter(t => t.status !== "done").slice(0, 3);
+  const recentNotes = notes.slice(0, 3);
+
+  const isLoading = isTasksLoading || isNotesLoading || isDocsLoading;
+
   return (
-    <PageTransition className="min-h-screen relative pb-24">
-      {/* Immersive Header Environment */}
-      <div className="relative h-[40vh] min-h-[300px] flex flex-col justify-end pb-12 px-8 overflow-hidden">
-        <MeshGradient className="opacity-30 absolute top-[-50%]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent z-0" />
-        
-        <div className="relative z-10 max-w-6xl mx-auto w-full">
-          <Typography variant="h1" className="mb-4 text-5xl">Mission Control</Typography>
-          <Typography variant="lead" className="max-w-2xl">
-            Your intelligence overview. Everything you know, what&apos;s changed, and what requires attention.
+    <PageTransition className="pb-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-10">
+          <Typography variant="h1" className="mb-2">Dashboard</Typography>
+          <Typography variant="muted" className="max-w-2xl">
+            Overview of your active tasks, recent notes, and knowledge base.
           </Typography>
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-8 relative z-10">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 md:grid-cols-12 gap-6"
-        >
-          {/* Intelligence Summary - Large Editorial Section */}
-          <motion.div variants={itemVariants} className="md:col-span-8 glass-panel rounded-3xl p-8 lg:p-12 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 transition-transform duration-1000 group-hover:scale-150" />
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Brain className="w-5 h-5 text-primary" />
-              </div>
-              <span className="text-sm font-medium tracking-widest uppercase text-white/50">Neural Insight</span>
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="p-6 rounded-xl border border-border bg-card">
+            <div className="flex items-center gap-3 mb-2">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+              <h3 className="font-medium text-foreground">Tasks</h3>
             </div>
-            
-            <Typography variant="h3" className="mb-6 font-light leading-snug">
-              Based on your recent documents, there is a strong semantic connection forming around <span className="text-primary font-medium">Artificial General Intelligence</span> architectures and your upcoming strategy presentation.
-            </Typography>
-            
-            <Button variant="glass" className="rounded-full mt-4">
-              Explore Connections <ArrowUpRight className="ml-2 w-4 h-4" />
-            </Button>
-          </motion.div>
+            <p className="text-3xl font-bold">{isLoading ? "-" : totalTasks}</p>
+            <p className="text-sm text-muted-foreground mt-1">Total pending and completed</p>
+          </div>
+          <div className="p-6 rounded-xl border border-border bg-card">
+            <div className="flex items-center gap-3 mb-2">
+              <FileText className="w-5 h-5 text-orange-400" />
+              <h3 className="font-medium text-foreground">Notes</h3>
+            </div>
+            <p className="text-3xl font-bold">{isLoading ? "-" : notes.length}</p>
+            <p className="text-sm text-muted-foreground mt-1">Captured thoughts & ideas</p>
+          </div>
+          <div className="p-6 rounded-xl border border-border bg-card">
+            <div className="flex items-center gap-3 mb-2">
+              <Database className="w-5 h-5 text-blue-400" />
+              <h3 className="font-medium text-foreground">Documents</h3>
+            </div>
+            <p className="text-3xl font-bold">{isLoading ? "-" : totalDocs}</p>
+            <p className="text-sm text-muted-foreground mt-1">Uploaded to knowledge base</p>
+          </div>
+        </div>
 
-          {/* Activity Pulse */}
-          <motion.div variants={itemVariants} className="md:col-span-4 glass-panel rounded-3xl p-8 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-sm font-medium tracking-widest uppercase text-white/50">Pulse</span>
-                <Activity className="w-4 h-4 text-white/30" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Tasks Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <Typography variant="h3">Pending Tasks</Typography>
+              <Link href="/tasks">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  View all <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
+            {isTasksLoading ? (
+              <div className="text-sm text-muted-foreground animate-pulse">Loading tasks...</div>
+            ) : pendingTasks.length === 0 ? (
+              <div className="p-6 border border-dashed border-border rounded-xl text-center">
+                <p className="text-sm text-muted-foreground mb-3">No pending tasks.</p>
+                <Link href="/tasks"><Button size="sm" variant="outline">Create a task</Button></Link>
               </div>
-              <div className="space-y-4">
-                {[
-                  { title: "Project Q-Star", time: "2h ago", type: "Document" },
-                  { title: "Q3 Planning", time: "4h ago", type: "Note" },
-                  { title: "Competitor Analysis", time: "1d ago", type: "Insight" }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between group cursor-pointer">
-                    <div>
-                      <p className="text-sm font-medium group-hover:text-primary transition-colors">{item.title}</p>
-                      <p className="text-xs text-white/40">{item.type}</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingTasks.map(task => (
+                  <div key={task.id} className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">{task.title}</p>
+                        <span className={`text-xs px-2 py-0.5 mt-2 inline-block rounded-md ${
+                          task.priority === "high" ? "bg-destructive/10 text-destructive" :
+                          task.priority === "medium" ? "bg-orange-500/10 text-orange-500" :
+                          "bg-muted text-muted-foreground"
+                        }`}>{task.priority}</span>
+                      </div>
                     </div>
-                    <span className="text-xs text-white/30">{item.time}</span>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="mt-8 pt-6 border-t border-white/5">
-              <span className="text-xs text-white/40 block">Total Knowledge Nodes</span>
-              <span className="text-3xl font-display font-light">1,248</span>
-            </div>
-          </motion.div>
+            )}
+          </section>
 
-          {/* Deep Focus Tasks */}
-          <motion.div variants={itemVariants} className="md:col-span-6 glass-panel rounded-3xl p-8">
-            <div className="flex items-center gap-3 mb-8">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
-              <span className="text-sm font-medium tracking-widest uppercase text-white/50">Deep Focus</span>
+          {/* Notes Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <Typography variant="h3">Recent Notes</Typography>
+              <Link href="/notes">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  View all <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
             </div>
-            <div className="space-y-6">
-              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05] transition-colors cursor-pointer group">
-                <h4 className="text-lg font-medium mb-2 group-hover:text-indigo-400 transition-colors">Finalize Architecture Review</h4>
-                <p className="text-sm text-white/50 mb-4">Requires synthesizing insights from 3 documents.</p>
-                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-indigo-400 h-full w-[65%]" />
-                </div>
+            {isNotesLoading ? (
+              <div className="text-sm text-muted-foreground animate-pulse">Loading notes...</div>
+            ) : recentNotes.length === 0 ? (
+              <div className="p-6 border border-dashed border-border rounded-xl text-center">
+                <p className="text-sm text-muted-foreground mb-3">No notes created.</p>
+                <Link href="/notes"><Button size="sm" variant="outline">Write a note</Button></Link>
               </div>
-            </div>
-          </motion.div>
-
-          {/* Knowledge Graph Preview */}
-          <motion.div variants={itemVariants} className="md:col-span-6 glass-panel rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] group">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-            <div className="relative z-10 flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <Database className="w-5 h-5 text-cyan-400" />
-                <span className="text-sm font-medium tracking-widest uppercase text-white/50">Knowledge Topology</span>
+            ) : (
+              <div className="space-y-3">
+                {recentNotes.map(note => (
+                  <div key={note.id} className="p-4 rounded-xl border border-border bg-card hover:border-orange-500/30 transition-colors">
+                    <h4 className="font-medium text-foreground mb-1">{note.title}</h4>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{note.content}</p>
+                  </div>
+                ))}
               </div>
-            </div>
-            <div className="relative z-10">
-              <Typography variant="h4" className="mb-2">Expanding Clusters</Typography>
-              <Typography variant="muted" className="mb-6">Your notes on React Server Components are forming new edges.</Typography>
-              <Button variant="link" className="px-0 text-cyan-400">View Graph <ArrowUpRight className="ml-1 w-4 h-4" /></Button>
-            </div>
-            {/* Abstract visual representation of a node */}
-            <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 border border-cyan-500/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
-              <div className="w-48 h-48 border border-cyan-500/40 rounded-full flex items-center justify-center">
-                <div className="w-32 h-32 bg-cyan-500/20 rounded-full blur-xl" />
-              </div>
-            </div>
-          </motion.div>
-
-        </motion.div>
+            )}
+          </section>
+        </div>
       </div>
     </PageTransition>
   );
